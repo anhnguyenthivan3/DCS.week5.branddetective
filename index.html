@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Detective: Decode the Five Layers</title>
+  <style>
+    :root{
+      --bg:#07101c;
+      --panel:#0d1a2a;
+      --panel2:#13243a;
+      --card:#fff6cf;
+      --cardText:#312a18;
+      --text:#f7fafc;
+      --muted:#a9b8ca;
+      --red:#e21b2d;
+      --yellow:#ffd34f;
+      --green:#35c98c;
+      --orange:#f59e0b;
+      --border:rgba(255,255,255,.14);
+      --shadow:0 16px 45px rgba(0,0,0,.28);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 88% 8%,rgba(226,27,45,.18),transparent 24rem),
+        radial-gradient(circle at 8% 92%,rgba(255,211,79,.11),transparent 20rem),
+        linear-gradient(180deg,#07101c,#0a1422);
+    }
+    button{font:inherit}
+    .app{width:min(1160px,calc(100% - 26px));margin:auto;padding:22px 0 52px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.05em}
+    .logo-icon{width:40px;height:40px;border-radius:11px;background:var(--red);display:grid;place-items:center}
+    .pill{padding:8px 12px;border:1px solid var(--border);border-radius:999px;color:var(--muted);background:rgba(255,255,255,.04);font-size:.9rem}
+    .progress{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:22px}
+    .progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--yellow));transition:.4s}
+    .screen{display:none;animation:fade .35s ease}
+    .screen.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    .hero{
+      min-height:640px;border:1px solid var(--border);border-radius:24px;padding:clamp(28px,6vw,68px);
+      display:flex;align-items:end;box-shadow:var(--shadow);
+      background:
+        linear-gradient(90deg,rgba(5,10,18,.97),rgba(5,10,18,.70) 60%,rgba(5,10,18,.28)),
+        radial-gradient(circle at 80% 25%,rgba(226,27,45,.32),transparent 17rem),
+        linear-gradient(135deg,#1a2940,#07101c);
+    }
+    .hero-copy{max-width:700px}
+    .eyebrow{color:var(--yellow);text-transform:uppercase;letter-spacing:.13em;font-weight:900;font-size:.82rem}
+    h1{font-size:clamp(2.8rem,7vw,5.8rem);line-height:.94;letter-spacing:-.055em;margin:12px 0}
+    .lead{font-size:clamp(1.05rem,2.2vw,1.4rem);line-height:1.55;color:var(--muted)}
+    .meta{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0}
+    .meta span{padding:8px 11px;border-radius:8px;background:rgba(255,255,255,.07)}
+    .btn{border:0;border-radius:10px;padding:13px 18px;font-weight:850;cursor:pointer;transition:.2s}
+    .btn-primary{background:var(--red);color:#fff}
+    .btn-primary:hover{filter:brightness(.92);transform:translateY(-1px)}
+    .btn-secondary{background:rgba(255,255,255,.10);color:#fff;border:1px solid var(--border)}
+    .btn-secondary:hover{background:rgba(255,255,255,.16)}
+
+    .game-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:22px}
+    .panel{border:1px solid var(--border);border-radius:20px;background:rgba(13,26,42,.95);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{padding:19px 21px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .panel-head h2{margin:0;font-size:1.2rem}
+    .panel-body{padding:21px}
+    .definition{
+      padding:16px;border:1px solid rgba(255,211,79,.32);border-radius:14px;
+      background:rgba(255,211,79,.08);margin-bottom:18px;line-height:1.5
+    }
+    .definition strong{display:block;color:var(--yellow);margin-bottom:6px}
+    .definition .question{margin-top:8px;font-weight:800;color:white}
+
+    .board{
+      min-height:500px;padding:24px;border-radius:18px;
+      background:
+        linear-gradient(rgba(77,48,27,.18),rgba(77,48,27,.18)),
+        repeating-linear-gradient(0deg,#9b7147 0 2px,#a97b4e 2px 7px);
+      border:7px solid #71482e;
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-content:start
+    }
+    .note{
+      position:relative;border:0;border-radius:3px;padding:20px 16px 16px;
+      background:var(--card);color:var(--cardText);text-align:left;line-height:1.45;
+      min-height:145px;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,.18);
+      transform:rotate(var(--r));transition:.18s
+    }
+    .note::before{
+      content:"";position:absolute;top:8px;left:50%;width:14px;height:14px;border-radius:50%;
+      background:var(--red);transform:translateX(-50%);box-shadow:0 2px 3px rgba(0,0,0,.35)
+    }
+    .note:hover{transform:rotate(0deg) translateY(-3px)}
+    .note.selected{outline:4px solid var(--green);transform:rotate(0deg) scale(1.02)}
+    .source{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:#78672d;margin-bottom:8px;font-weight:900}
+    .selection-msg{margin-top:14px;color:var(--muted);line-height:1.45}
+
+    .layer-label{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+    .layer-num{width:36px;height:36px;border-radius:10px;background:var(--red);display:grid;place-items:center;font-weight:900}
+    .layer-label h2{margin:0;font-size:1.4rem}
+    .prompt{line-height:1.5;color:#e7edf5}
+    .keyword-grid{display:grid;gap:10px;margin-top:16px}
+    .keyword{
+      width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);
+      background:#0a1625;color:white;text-align:left;cursor:pointer;transition:.18s
+    }
+    .keyword:hover{border-color:var(--yellow);background:#14253b}
+    .keyword.selected{border-color:var(--yellow);background:rgba(255,211,79,.13)}
+    .keyword.correct{border-color:var(--green);background:rgba(53,201,140,.14)}
+    .keyword.wrong{border-color:var(--orange);background:rgba(245,158,11,.13)}
+    .feedback{display:none;margin-top:14px;border-radius:12px;padding:14px;line-height:1.5}
+    .feedback.show{display:block}
+    .feedback.good{background:rgba(53,201,140,.13);border:1px solid rgba(53,201,140,.46)}
+    .feedback.try{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.42)}
+    .diagnosis{display:none;margin-top:15px;padding:16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--border)}
+    .diagnosis.show{display:block;animation:fade .35s ease}
+    .diagnosis span{display:block;color:var(--yellow);text-transform:uppercase;letter-spacing:.08em;font-size:.77rem;font-weight:900;margin-bottom:7px}
+    .diagnosis strong{font-size:1.2rem;line-height:1.4}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .dna-meter{margin-top:20px}
+    .dna-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+    .dna-step{padding:10px 6px;border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--muted);font-size:.8rem;background:rgba(255,255,255,.04)}
+    .dna-step.done{border-color:var(--green);background:rgba(53,201,140,.12);color:white}
+    .mini-progress{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px}
+    .mini-progress div{height:100%;width:0;background:var(--green);transition:.35s}
+
+    .reveal{
+      border:1px solid var(--border);border-radius:24px;padding:clamp(28px,6vw,62px);
+      background:linear-gradient(145deg,#14243a,#07101c);box-shadow:var(--shadow);text-align:center
+    }
+    .scan{font-family:monospace;letter-spacing:.18em;color:var(--green);margin-bottom:18px}
+    .reveal h2{font-size:clamp(3rem,9vw,7rem);margin:8px 0;letter-spacing:-.06em}
+    .confidence{font-size:clamp(2.8rem,8vw,5.8rem);font-weight:900;color:var(--yellow);line-height:1}
+    .dna-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:28px 0;text-align:left}
+    .dna-card{padding:16px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.045)}
+    .dna-card span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:.75rem;margin-bottom:8px}
+    .archetypes{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:12px;text-align:left;margin-top:18px}
+    .arch{padding:18px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.045)}
+    .arch h3{margin:0 0 8px}
+    .arch p{margin:0;color:var(--muted);line-height:1.5}
+
+    @media(max-width:900px){
+      .game-layout{grid-template-columns:1fr}
+      .dna-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .archetypes{grid-template-columns:1fr}
+    }
+    @media(max-width:580px){
+      .app{width:min(100% - 18px,1160px)}
+      .board{grid-template-columns:1fr;padding:18px}
+      .dna-grid,.dna-row{grid-template-columns:1fr}
+      .hero{min-height:570px}
+      .topbar{align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="logo"><div class="logo-icon">🕵️</div><span>BRAND DETECTIVE</span></div>
+      <div id="topPill" class="pill">Mystery Brand</div>
+    </header>
+
+    <div class="progress"><div id="mainProgress"></div></div>
+
+    <section id="opening" class="screen active">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Social Listening Mission</div>
+          <h1>Decode the Brand DNA</h1>
+          <p class="lead">Collect evidence, identify repeated patterns and reconstruct the five layers of an unknown brand personality.</p>
+          <div class="meta">
+            <span>5 guided rounds</span>
+            <span>Real audience evidence</span>
+            <span>Archetype reveal</span>
+          </div>
+          <button id="startBtn" class="btn btn-primary">Start Investigation</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="game" class="screen">
+      <div class="game-layout">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Evidence Board</h2>
+            <span id="evidenceCounter" class="pill">Select 3 clues</span>
+          </div>
+          <div class="panel-body">
+            <div id="definition" class="definition"></div>
+            <div id="board" class="board"></div>
+            <p id="selectionMsg" class="selection-msg">Click the evidence cards that appear to express the same repeated idea.</p>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <div class="panel-head">
+            <h2>Build the Diagnosis</h2>
+            <span id="roundPill" class="pill">Round 1 of 5</span>
+          </div>
+          <div class="panel-body">
+            <div class="layer-label">
+              <div id="layerNum" class="layer-num">1</div>
+              <h2 id="layerTitle"></h2>
+            </div>
+            <p id="layerPrompt" class="prompt"></p>
+            <div id="keywordGrid" class="keyword-grid"></div>
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+            <div id="diagnosis" class="diagnosis"></div>
+            <div class="actions">
+              <button id="checkBtn" class="btn btn-primary">Check Pattern</button>
+              <button id="hintBtn" class="btn btn-secondary">Hint</button>
+              <button id="nextBtn" class="btn btn-primary" style="display:none">Next Layer →</button>
+            </div>
+            <p id="hintText" class="selection-msg"></p>
+
+            <div class="dna-meter">
+              <div class="dna-row" id="dnaRow"></div>
+              <div class="mini-progress"><div id="dnaProgress"></div></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="reveal" class="screen">
+      <div class="reveal">
+        <div class="scan">CONSTRUCTING BRAND DNA...</div>
+        <div class="eyebrow">Identity Reconstructed</div>
+        <h2>RED BULL</h2>
+        <p class="lead" style="margin-left:auto;margin-right:auto">Different content. One consistent belief: life becomes meaningful when people move beyond the ordinary.</p>
+        <div class="confidence">94%</div>
+        <p style="color:var(--muted)">Diagnostic confidence</p>
+
+        <div class="dna-grid">
+          <div class="dna-card"><span>Core Motivation</span><strong>Push beyond limits</strong></div>
+          <div class="dna-card"><span>Worldview</span><strong>Extraordinary experiences make life meaningful</strong></div>
+          <div class="dna-card"><span>Temperament</span><strong>Bold, energetic and playful</strong></div>
+          <div class="dna-card"><span>Persuasion</span><strong>Awe and entertainment</strong></div>
+          <div class="dna-card"><span>Expression</span><strong>Extreme challenges, achievement and spectacle</strong></div>
+        </div>
+
+        <div class="archetypes">
+          <div class="arch">
+            <h3>Explorer — dominant</h3>
+            <p>The brand encourages people to leave the familiar, seek intensity and experience what lies beyond ordinary life.</p>
+          </div>
+          <div class="arch">
+            <h3>Hero — secondary</h3>
+            <p>Elite performance and difficult achievements celebrate mastery, courage and resilience.</p>
+          </div>
+          <div class="arch">
+            <h3>Jester — supporting</h3>
+            <p>Soapbox content expresses the same adventurous identity through absurdity, humour and playful risk.</p>
+          </div>
+        </div>
+
+        <div class="actions" style="justify-content:center">
+          <button id="restartBtn" class="btn btn-primary">Play Again</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const layers = [
+      {
+        name:"Core Motivation",
+        definition:"The brand’s deepest goal—the outcome or experience it ultimately encourages people to pursue.",
+        question:"What does this brand want people to pursue?",
+        prompt:"First, select three evidence cards that celebrate the same underlying idea. Then choose the keyword that best names the pattern.",
+        select:3,
+        evidence:[
+          {source:"Brand · Football",text:"Designed to push athletes to the edge of their abilities.",key:true},
+          {source:"Audience · Everest",text:"This is a legendary achievement.",key:true},
+          {source:"Audience · Football",text:"The hardest part looked easy.",key:true},
+          {source:"Audience · Football",text:"Neymar, Thiago and Klopp in one video? Absolute gold.",key:false},
+          {source:"Audience · Soapbox",text:"The commentary reminds me of childhood.",key:false}
+        ],
+        options:["Comfort","Challenge","Belonging","Luxury","Knowledge"],
+        answer:"Challenge",
+        feedback:"These clues repeatedly celebrate difficulty, exceptional effort and going beyond normal ability.",
+        diagnosis:"Push people beyond their limits.",
+        hint:"Look for words connected to difficulty, resilience, extraordinary ability and achievement."
+      },
+      {
+        name:"Worldview",
+        definition:"The underlying belief the brand appears to hold about people, life and what is worth doing.",
+        question:"What does this brand appear to believe about life?",
+        prompt:"Select the evidence that points to the same belief about how people should live.",
+        select:3,
+        evidence:[
+          {source:"Brand · Everest",text:"World first. No supplementary oxygen.",key:true},
+          {source:"Audience · Soapbox",text:"This is a bucket-list event to attend—or even compete in.",key:true},
+          {source:"Audience · Soapbox",text:"Just toss danger out the window and book it.",key:true},
+          {source:"Audience · Football",text:"Endrick and Richard Rios are such a duo.",key:false},
+          {source:"Audience · Everest",text:"No talking and raw footage was the correct choice.",key:false}
+        ],
+        options:[
+          "Life should remain predictable",
+          "Extraordinary experiences make life meaningful",
+          "Success comes from following convention",
+          "Comfort creates happiness",
+          "Expertise should stay exclusive"
+        ],
+        answer:"Extraordinary experiences make life meaningful",
+        feedback:"World-first attempts, bucket-list participation and willingness to leave safety all point to a life beyond the ordinary.",
+        diagnosis:"Life becomes meaningful when people move beyond the ordinary.",
+        hint:"Think about what connects “world first,” “bucket list” and willingly accepting risk."
+      },
+      {
+        name:"Temperament",
+        definition:"The personality the brand displays through its behaviour and voice. Imagine the brand as a person.",
+        question:"What would this brand feel like to interact with?",
+        prompt:"Select three evidence cards that reveal the brand’s personality, then choose three matching traits.",
+        select:3,
+        multi:3,
+        evidence:[
+          {source:"Brand · Soapbox",text:"Fearless, fun-loving and foolhardy teams.",key:true},
+          {source:"Audience · Soapbox",text:"Who needs Formula 1 when you’ve got pure hilarity?",key:true},
+          {source:"Audience · Everest",text:"Peaceful and terrifying at the same time.",key:true},
+          {source:"Audience · Football",text:"Thiago switched flawlessly between three languages.",key:false},
+          {source:"Audience · Football",text:"Endrick and Rios played together at Palmeiras.",key:false}
+        ],
+        options:["Bold","Energetic","Playful","Formal","Cautious","Elegant","Reserved","Gentle"],
+        answers:["Bold","Energetic","Playful"],
+        feedback:"Across serious achievement and humorous participation, the brand consistently feels bold, high-energy and playful.",
+        diagnosis:"Bold, energetic and playful.",
+        hint:"The best answer must fit both Everest and Soapbox—not only one video."
+      },
+      {
+        name:"Persuasion",
+        definition:"The way the brand attracts attention and creates interest, belief or emotional response.",
+        question:"How does this brand convince people to care?",
+        prompt:"Select evidence showing how viewers respond emotionally, then choose the two strongest persuasion methods.",
+        select:3,
+        multi:2,
+        evidence:[
+          {source:"Audience · Football",text:"One of the most impressive things I’ve seen with a football.",key:true},
+          {source:"Audience · Everest",text:"These shots deserve a best nature documentary nomination.",key:true},
+          {source:"Audience · Soapbox",text:"I laughed until I cried.",key:true},
+          {source:"Audience · Football",text:"Endrick speaks English, Portuguese, Spanish and French.",key:false},
+          {source:"Audience · Soapbox",text:"How do you enter the event?",key:false}
+        ],
+        options:["Awe","Entertainment","Discounts","Detailed product facts","Fear","Convenience","Tradition","Technical explanation"],
+        answers:["Awe","Entertainment"],
+        feedback:"The content persuades by creating astonishment and enjoyment rather than explaining product features.",
+        diagnosis:"Make audiences feel awe and entertainment first.",
+        hint:"Notice words such as impressive, documentary-worthy and laughter."
+      },
+      {
+        name:"Expression",
+        definition:"The visible content formats, themes and experiences through which the brand brings its personality to life.",
+        question:"What does the brand repeatedly create or stage?",
+        prompt:"Select three evidence cards representing recurring content patterns, then choose three expressions.",
+        select:3,
+        multi:3,
+        evidence:[
+          {source:"Brand · Football",text:"An impossible 100-ball challenge with elite footballers.",key:true},
+          {source:"Brand · Everest",text:"A world-first ski descent from Everest without oxygen.",key:true},
+          {source:"Brand · Soapbox",text:"Homemade vehicles, competition, creativity and crashes.",key:true},
+          {source:"Audience · Football",text:"I see Klopp, I click.",key:false},
+          {source:"Audience · Everest",text:"Maybe this will motivate me to do the dishes.",key:false}
+        ],
+        options:[
+          "Extreme challenges",
+          "Human achievement",
+          "Spectacle and entertainment",
+          "Corporate interviews",
+          "Price promotions",
+          "Product tutorials",
+          "Routine lifestyle advice",
+          "Technical manuals"
+        ],
+        answers:["Extreme challenges","Human achievement","Spectacle and entertainment"],
+        feedback:"Across all three cases, Red Bull repeatedly stages difficult challenges, remarkable human performance and highly watchable spectacle.",
+        diagnosis:"Extreme challenges, human achievement and spectacle.",
+        hint:"Move above the topics of football, skiing and vehicles. Look for reusable content patterns."
+      }
+    ];
+
+    let current=0;
+    let selectedEvidence=[];
+    let selectedKeywords=[];
+    let completed=0;
+
+    const screens={
+      opening:document.getElementById("opening"),
+      game:document.getElementById("game"),
+      reveal:document.getElementById("reveal")
+    };
+    const board=document.getElementById("board");
+    const definition=document.getElementById("definition");
+    const layerTitle=document.getElementById("layerTitle");
+    const layerNum=document.getElementById("layerNum");
+    const layerPrompt=document.getElementById("layerPrompt");
+    const keywordGrid=document.getElementById("keywordGrid");
+    const feedback=document.getElementById("feedback");
+    const diagnosis=document.getElementById("diagnosis");
+    const nextBtn=document.getElementById("nextBtn");
+    const checkBtn=document.getElementById("checkBtn");
+    const hintText=document.getElementById("hintText");
+    const evidenceCounter=document.getElementById("evidenceCounter");
+    const roundPill=document.getElementById("roundPill");
+    const dnaRow=document.getElementById("dnaRow");
+    const dnaProgress=document.getElementById("dnaProgress");
+    const mainProgress=document.getElementById("mainProgress");
+    const topPill=document.getElementById("topPill");
+    const selectionMsg=document.getElementById("selectionMsg");
+
+    function showScreen(name){
+      Object.values(screens).forEach(s=>s.classList.remove("active"));
+      screens[name].classList.add("active");
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+
+    function renderDNA(){
+      dnaRow.innerHTML="";
+      layers.forEach((l,i)=>{
+        const d=document.createElement("div");
+        d.className="dna-step"+(i<completed?" done":"");
+        d.innerHTML=`${i<completed?"✓":"○"}<br>${i+1}`;
+        dnaRow.appendChild(d);
+      });
+      const pct=(completed/5)*100;
+      dnaProgress.style.width=pct+"%";
+      mainProgress.style.width=pct+"%";
+      topPill.textContent=`Brand DNA ${pct}%`;
+    }
+
+    function renderLayer(){
+      const l=layers[current];
+      selectedEvidence=[];
+      selectedKeywords=[];
+      feedback.className="feedback";
+      feedback.innerHTML="";
+      diagnosis.className="diagnosis";
+      diagnosis.innerHTML="";
+      nextBtn.style.display="none";
+      checkBtn.style.display="inline-block";
+      hintText.textContent="";
+      roundPill.textContent=`Round ${current+1} of 5`;
+      layerNum.textContent=current+1;
+      layerTitle.textContent=l.name;
+      layerPrompt.textContent=l.prompt;
+      definition.innerHTML=`<strong>${l.name}</strong>${l.definition}<div class="question">${l.question}</div>`;
+      evidenceCounter.textContent=`Select ${l.select} clues`;
+      selectionMsg.textContent="Click the evidence cards that appear to express the same repeated idea.";
+
+      board.innerHTML="";
+      const rotations=["-1.6deg","1.2deg","-.8deg","1.5deg","-1.1deg"];
+      l.evidence.forEach((e,i)=>{
+        const n=document.createElement("button");
+        n.type="button";
+        n.className="note";
+        n.style.setProperty("--r",rotations[i%rotations.length]);
+        n.innerHTML=`<span class="source">${e.source}</span>${e.text}`;
+        n.addEventListener("click",()=>{
+          if(selectedEvidence.includes(i)){
+            selectedEvidence=selectedEvidence.filter(x=>x!==i);
+            n.classList.remove("selected");
+          }else if(selectedEvidence.length<l.select){
+            selectedEvidence.push(i);
+            n.classList.add("selected");
+          }
+          evidenceCounter.textContent=`${selectedEvidence.length}/${l.select} clues selected`;
+        });
+        board.appendChild(n);
+      });
+
+      keywordGrid.innerHTML="";
+      l.options.forEach(opt=>{
+        const b=document.createElement("button");
+        b.type="button";
+        b.className="keyword";
+        b.textContent=opt;
+        b.addEventListener("click",()=>{
+          if(l.multi){
+            if(selectedKeywords.includes(opt)){
+              selectedKeywords=selectedKeywords.filter(x=>x!==opt);
+              b.classList.remove("selected");
+            }else if(selectedKeywords.length<l.multi){
+              selectedKeywords.push(opt);
+              b.classList.add("selected");
+            }
+          }else{
+            selectedKeywords=[opt];
+            document.querySelectorAll(".keyword").forEach(x=>x.classList.remove("selected"));
+            b.classList.add("selected");
+          }
+        });
+        keywordGrid.appendChild(b);
+      });
+
+      renderDNA();
+    }
+
+    function checkAnswer(){
+      const l=layers[current];
+      if(selectedEvidence.length<l.select){
+        feedback.className="feedback show try";
+        feedback.textContent=`Select ${l.select} evidence cards before checking the pattern.`;
+        return;
+      }
+      const correctEvidence=selectedEvidence.filter(i=>l.evidence[i].key).length;
+      const evidenceOK=correctEvidence===l.select;
+
+      let keywordOK=false;
+      if(l.multi){
+        keywordOK=selectedKeywords.length===l.multi &&
+          selectedKeywords.every(x=>l.answers.includes(x));
+      }else{
+        keywordOK=selectedKeywords[0]===l.answer;
+      }
+
+      if(!selectedKeywords.length || (l.multi && selectedKeywords.length<l.multi)){
+        feedback.className="feedback show try";
+        feedback.textContent=`Choose ${l.multi||1} keyword${(l.multi||1)>1?"s":""} before checking.`;
+        return;
+      }
+
+      document.querySelectorAll(".keyword").forEach(btn=>{
+        if(l.multi ? l.answers.includes(btn.textContent) : btn.textContent===l.answer){
+          if(keywordOK && btn.classList.contains("selected")) btn.classList.add("correct");
+        } else if(btn.classList.contains("selected") && !keywordOK){
+          btn.classList.add("wrong");
+        }
+      });
+
+      if(evidenceOK && keywordOK){
+        feedback.className="feedback show good";
+        feedback.innerHTML=`<strong>Pattern detected.</strong><br>${l.feedback}`;
+        diagnosis.className="diagnosis show";
+        diagnosis.innerHTML=`<span>${l.name} diagnosis</span><strong>${l.diagnosis}</strong>`;
+        checkBtn.style.display="none";
+        nextBtn.style.display="inline-block";
+        selectionMsg.textContent="Evidence pattern successfully identified.";
+      }else if(!evidenceOK && keywordOK){
+        feedback.className="feedback show try";
+        feedback.textContent="Your keyword is strong, but one selected evidence card does not support this layer. Recheck the clues.";
+      }else if(evidenceOK && !keywordOK){
+        feedback.className="feedback show try";
+        feedback.textContent="You found the right evidence pattern. Reconsider the keyword that best summarizes it.";
+      }else{
+        feedback.className="feedback show try";
+        feedback.textContent="Some evidence and keywords do not yet form one repeated pattern. Use the hint and try again.";
+      }
+    }
+
+    checkBtn.addEventListener("click",checkAnswer);
+
+    document.getElementById("hintBtn").addEventListener("click",()=>{
+      hintText.textContent=layers[current].hint;
+    });
+
+    nextBtn.addEventListener("click",()=>{
+      completed++;
+      if(current<4){
+        current++;
+        renderLayer();
+      }else{
+        completed=5;
+        renderDNA();
+        setTimeout(()=>showScreen("reveal"),350);
+      }
+    });
+
+    document.getElementById("startBtn").addEventListener("click",()=>{
+      showScreen("game");
+      renderLayer();
+    });
+
+    document.getElementById("restartBtn").addEventListener("click",()=>{
+      current=0;
+      completed=0;
+      renderLayer();
+      showScreen("game");
+    });
+
+    renderDNA();
+  </script>
+</body>
+</html>
